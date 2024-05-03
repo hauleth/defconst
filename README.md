@@ -4,7 +4,7 @@ SPDX-FileCopyrightText: 2024 Łukasz Niemier <#@hauleth.dev>
 SPDX-License-Identifier: MIT
 -->
 
-# Defconst
+# defconstant
 
 Helper macros for defining constants in Elixir code
 
@@ -13,7 +13,7 @@ Helper macros for defining constants in Elixir code
 ```elixir
 def deps do
   [
-    {:defconst, "~> 0.1.0"}
+    {:defconstant, "~> 0.1.0"}
   ]
 end
 ```

@@ -2,12 +2,12 @@
 #
 # SPDX-License-Identifier: MIT
 
-defmodule Defconst.MixProject do
+defmodule Defconstant.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :defconst,
+      app: :defconstant,
       description: "Helper macros for defining constant values in modules",
       version: "1.0.0",
       elixir: "~> 1.16",

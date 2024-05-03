@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-defmodule Defconst do
+defmodule Defconstant do
   @moduledoc """
   Helper functions for definig constant values in your modules.
 

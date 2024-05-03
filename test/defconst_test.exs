@@ -2,10 +2,10 @@
 #
 # SPDX-License-Identifier: MIT
 
-defmodule DefconstTest do
+defmodule DefconstantTest do
   use ExUnit.Case, async: true
 
-  @subject Defconst
+  @subject Defconstant
 
   doctest @subject
 
