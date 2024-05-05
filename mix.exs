@@ -5,11 +5,13 @@
 defmodule Defconstant.MixProject do
   use Mix.Project
 
+  @version "1.0.0"
+
   def project do
     [
       app: :defconstant,
       description: "Helper macros for defining constant values in modules",
-      version: "1.0.0",
+      version: @version,
       elixir: "~> 1.16",
       start_permanent: Mix.env() == :prod,
       package: %{
@@ -20,6 +22,12 @@ defmodule Defconstant.MixProject do
       },
       deps: [
         {:ex_doc, ">= 0.0.0", only: [:dev]}
+      ],
+      docs: [
+        main: "Defconstant",
+        source_url: "https://github.com/hauleth/defconst",
+        source_ref: "v#{@version}",
+        formatters: ~w[html]
       ]
     ]
   end
