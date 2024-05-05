@@ -13,7 +13,7 @@ Helper macros for defining constants in Elixir code
 ```elixir
 def deps do
   [
-    {:defconstant, "~> 0.1.0"}
+    {:defconstant, "~> 1.0.0"}
   ]
 end
 ```
