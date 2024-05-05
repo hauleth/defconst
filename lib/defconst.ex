@@ -4,7 +4,7 @@
 
 defmodule Defconstant do
   @moduledoc """
-  Helper functions for definig constant values in your modules.
+  Helper functions for defining constant values in your modules.
 
   ## Usage
 
@@ -27,11 +27,23 @@ defmodule Defconstant do
   end
   ```
   """
+
   @doc """
   Defines function that will be evaulated once, *in compile time*, and will
   return computation result.
 
   Defined function can only be 0-ary.
+
+  Example:
+
+      defmodule MyConstants do
+        import Defconstant
+        defconst the_answer, do: 42
+
+        def my_func do
+          the_answer() * 2 # returns 84
+        end
+      end
   """
   defmacro defconst({name, _, args}, do: body) when is_atom(args) or args == [] do
     quote bind_quoted: [name: name, result: body] do
