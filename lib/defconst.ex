@@ -85,7 +85,7 @@ defmodule Defconstant do
   @doc """
   Defines private function that will be evaulated once, *in runtime*, and will cache the result.
 
-  Defined function can only be 0-ary.
+  For details see `defonce/2`.
   """
   defmacro defoncep(call, opts), do: do_defonce(:defp, call, __CALLER__, opts)
 
