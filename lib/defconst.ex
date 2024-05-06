@@ -28,6 +28,8 @@ defmodule Defconstant do
   ```
   """
 
+  defguardp is_empty_args(value) when is_atom(value) or value == []
+
   @doc """
   Defines function that will be evaulated once, *in compile time*, and will
   return computation result.
@@ -45,20 +47,32 @@ defmodule Defconstant do
         end
       end
   """
-  defmacro defconst({name, _, args}, do: body) when is_atom(args) or args == [] do
-    quote bind_quoted: [name: name, result: body] do
-      def unquote(name)() do
-        unquote(result)
-      end
+  defmacro defconst(call, opts), do: do_defconst(:def, call, __CALLER__, opts)
+
+  @doc """
+  Defines private function that will be evaulated in compile time.
+
+  For details see `defconst/2`.
+  """
+  defmacro defconstp(call, opts), do: do_defconst(:defp, call, __CALLER__, opts)
+
+  defp do_defconst(type, {name, _, args}, _ctx, do: body) when is_empty_args(args) do
+    fbody = quote unquote: false do
+      unquote(result)
+    end
+    quote do
+      result = unquote(body)
+
+      unquote(type)(unquote(name)(), do: unquote(fbody))
     end
   end
 
-  defmacro defconst({name, _, args}, _) when length(args) > 0 do
+  defp do_defconst(type, {name, _, args}, %Macro.Env{} = ctx, _) when length(args) > 0 do
     raise CompileError,
       description:
-        "`defconst` can define only 0-ary functions, tried to define #{name}/#{length(args)}-ary.",
-      line: __CALLER__.line,
-      file: __CALLER__.file
+      "`defconst#{if type == :defp, do: "p", else: ""}` can define only 0-ary functions, tried to define #{name}/#{length(args)}-ary.",
+      line: ctx.line,
+      file: ctx.file
   end
 
   @doc """
@@ -66,9 +80,18 @@ defmodule Defconstant do
 
   Defined function can only be 0-ary.
   """
-  defmacro defonce({name, _, args}, do: body) when is_atom(args) or args == [] do
+  defmacro defonce(call, opts), do: do_defonce(:def, call, __CALLER__, opts)
+
+  @doc """
+  Defines private function that will be evaulated once, *in runtime*, and will cache the result.
+
+  Defined function can only be 0-ary.
+  """
+  defmacro defoncep(call, opts), do: do_defonce(:defp, call, __CALLER__, opts)
+
+  defp do_defonce(type, {name, _, args}, _ctx, do: body) when is_atom(args) or args == [] do
     quote do
-      def unquote(name)() do
+      unquote(type)(unquote(name)()) do
         :persistent_term.get({__MODULE__, unquote(name)})
       catch
         :error, :badarg ->
@@ -81,11 +104,11 @@ defmodule Defconstant do
     end
   end
 
-  defmacro defonce({name, _, args}, _) when length(args) > 0 do
+  defp do_defonce(type, {name, _, args}, ctx, _) when length(args) > 0 do
     raise CompileError,
       description:
-        "`defonce` can define only 0-ary functions, tried to define #{name}/#{length(args)}-ary.",
-      line: __CALLER__.line,
-      file: __CALLER__.file
+        "`defonce#{if type == :defp, do: "p", else: ""}` can define only 0-ary functions, tried to define #{name}/#{length(args)}-ary.",
+      line: ctx.line,
+      file: ctx.file
   end
 end
