@@ -21,7 +21,8 @@ defmodule Defconstant.MixProject do
         }
       },
       deps: [
-        {:ex_doc, ">= 0.0.0", only: [:dev]}
+        {:ex_doc, ">= 0.0.0", only: [:dev]},
+        {:benchee, ">= 0.0.0", only: [:dev]}
       ],
       docs: [
         main: "Defconstant",

@@ -2,8 +2,6 @@
 #
 # SPDX-License-Identifier: MIT
 
-Mix.install([:benchee])
-
 defmodule SUT do
   @key {__MODULE__, :try}
   def do_try do
