@@ -12,7 +12,7 @@ defmodule Defconstant.MixProject do
       app: :defconstant,
       description: "Helper macros for defining constant values in modules",
       version: @version,
-      elixir: "~> 1.16",
+      elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,
       package: %{
         licenses: ~W[MIT],
