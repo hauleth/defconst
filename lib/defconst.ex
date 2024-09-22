@@ -92,14 +92,14 @@ defmodule Defconstant do
   defp do_defonce(type, {name, _, args}, _ctx, do: body) when is_atom(args) or args == [] do
     quote do
       unquote(type)(unquote(name)()) do
-        :persistent_term.get({__MODULE__, unquote(name)})
-      catch
-        :error, :badarg ->
+        empty = {__MODULE__, unquote(name), :__no_val__}
+        with ^empty <- :persistent_term.get({__MODULE__, unquote(name)}, empty) do
           result = unquote(body)
 
           :persistent_term.put({__MODULE__, unquote(name)}, result)
 
           result
+        end
       end
     end
   end
