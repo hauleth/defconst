@@ -63,7 +63,7 @@ defmodule Demo.MyConst do
     NaiveDateTime.utc_now()
   end
 
-  def run_calulations(circumference) do
+  def run_calculations(circumference) do
     circle_radius = circumference / 2 * pi()
     "radius is #{circle_radius} and was first calculated at #{inspect calculated_at()}"
   end
