@@ -91,16 +91,23 @@ defmodule Defconstant do
   """
   defmacro defoncep(call, opts), do: do_defonce(:defp, call, __CALLER__, opts)
 
+  @max_hash 4_294_967_295
+
   defp do_defonce(type, {name, _, args}, _ctx, do: body) when is_atom(args) or args == [] do
+    body_hash = :erlang.phash2(body, @max_hash)
+
     quote do
       unquote(type)(unquote(name)()) do
-        empty = {__MODULE__, unquote(name), :__no_val__}
-        with ^empty <- :persistent_term.get({__MODULE__, unquote(name)}, empty) do
-          result = unquote(body)
+        case :persistent_term.get({__MODULE__, unquote(name)}, :__no_val__) do
+          {unquote(body_hash), value} ->
+            value
 
-          :persistent_term.put({__MODULE__, unquote(name)}, result)
+          _ ->
+            result = unquote(body)
 
-          result
+            :persistent_term.put({__MODULE__, unquote(name)}, {unquote(body_hash), result})
+
+            result
         end
       end
     end

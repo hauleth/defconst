@@ -9,8 +9,8 @@ defmodule DefconstantTest do
 
   doctest @subject
 
-  defp compile(body) do
-    name = Module.concat(__MODULE__, "Test#{System.unique_integer([:positive])}")
+  defp compile(body, opts \\ []) do
+    name = opts[:module_name] || Module.concat(__MODULE__, "Test#{System.unique_integer([:positive])}")
 
     code =
       quote do
@@ -21,7 +21,7 @@ defmodule DefconstantTest do
         end
       end
 
-    Code.eval_quoted(code, [], __ENV__)
+    Code.eval_quoted_with_env(code, [], __ENV__)
 
     name
   end
@@ -309,6 +309,80 @@ defmodule DefconstantTest do
           end
         )
       end
+    end
+
+    test "when replacing module then function is reevaluated" do
+      mod_name = __MODULE__.TestRecompilation1
+      mod =
+        compile(
+          quote do
+            defonce foo do
+              send(unquote(self()), {:ping, 1})
+              {:pong, 1}
+            end
+
+            def call, do: foo()
+          end,
+          module_name: mod_name
+        )
+
+      assert mod.call() == {:pong, 1}
+
+      assert_received {:ping, 1}
+
+      mod =
+        compile(
+          quote do
+            defonce foo do
+              send(unquote(self()), {:ping, 2})
+              {:pong, 2}
+            end
+
+            def call, do: foo()
+          end,
+          module_name: mod_name
+        )
+
+      assert mod.call() == {:pong, 2}
+
+      assert_received {:ping, 2}
+    end
+
+    test "when defonce body stays the same, do not reevaluate" do
+      mod_name = __MODULE__.TestRecompilation2
+      mod =
+        compile(
+          quote do
+            defonce foo do
+              send(unquote(self()), :ping)
+              :pong
+            end
+
+            def call, do: {foo(), 1}
+          end,
+          module_name: mod_name
+        )
+
+      assert mod.call() == {:pong, 1}
+
+      assert_received :ping
+
+      mod =
+        compile(
+          quote do
+            defonce foo do
+              send(unquote(self()), :ping)
+              :pong
+            end
+
+            def call, do: {foo(), 2}
+          end,
+          module_name: mod_name
+        )
+
+      assert mod.call() == {:pong, 2}
+
+      refute_received :ping
     end
   end
 end
