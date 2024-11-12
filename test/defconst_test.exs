@@ -10,7 +10,8 @@ defmodule DefconstantTest do
   doctest @subject
 
   defp compile(body, opts \\ []) do
-    name = opts[:module_name] || Module.concat(__MODULE__, "Test#{System.unique_integer([:positive])}")
+    name =
+      opts[:module_name] || Module.concat(__MODULE__, "Test#{System.unique_integer([:positive])}")
 
     code =
       quote do
@@ -66,7 +67,6 @@ defmodule DefconstantTest do
         )
 
       assert_received :ping
-
       assert mod.foo() == :pong
 
       refute_received :ping
@@ -146,7 +146,6 @@ defmodule DefconstantTest do
         )
 
       assert_received :ping
-
       assert mod.call() == :pong
 
       refute_received :ping
@@ -208,11 +207,9 @@ defmodule DefconstantTest do
         )
 
       refute_received :ping
-
       assert mod.foo() == :pong
 
       assert_received :ping
-
       assert mod.foo() == :pong
 
       refute_received :ping
@@ -274,11 +271,9 @@ defmodule DefconstantTest do
         )
 
       refute_received :ping
-
       assert mod.call() == :pong
 
       assert_received :ping
-
       assert mod.call() == :pong
 
       refute_received :ping
@@ -313,6 +308,7 @@ defmodule DefconstantTest do
 
     test "when replacing module then function is reevaluated" do
       mod_name = __MODULE__.TestRecompilation1
+
       mod =
         compile(
           quote do
@@ -327,7 +323,6 @@ defmodule DefconstantTest do
         )
 
       assert mod.call() == {:pong, 1}
-
       assert_received {:ping, 1}
 
       mod =
@@ -344,12 +339,12 @@ defmodule DefconstantTest do
         )
 
       assert mod.call() == {:pong, 2}
-
       assert_received {:ping, 2}
     end
 
     test "when defonce body stays the same, do not reevaluate" do
       mod_name = __MODULE__.TestRecompilation2
+
       mod =
         compile(
           quote do
@@ -364,7 +359,6 @@ defmodule DefconstantTest do
         )
 
       assert mod.call() == {:pong, 1}
-
       assert_received :ping
 
       mod =
@@ -381,8 +375,53 @@ defmodule DefconstantTest do
         )
 
       assert mod.call() == {:pong, 2}
+      refute_received :ping
+    end
+
+    test "bang function forces recomputation" do
+      mod =
+        compile(
+          quote do
+            defonce foo do
+              send(unquote(self()), :ping)
+              {:pong, System.unique_integer()}
+            end
+          end
+        )
 
       refute_received :ping
+
+      assert {:pong, first} = mod.foo()
+      assert_received :ping
+
+      assert {:pong, second} = mod.foo!()
+      assert_received :ping
+
+      assert first != second
+    end
+
+    test "function name cannot end with exclamation mark (`!`/bang)" do
+      assert_raise CompileError, fn ->
+        compile(
+          quote do
+            defoncep foo! do
+              2137
+            end
+          end
+        )
+      end
+    end
+
+    test "function name cannot end with question mark (`?`)" do
+      assert_raise CompileError, fn ->
+        compile(
+          quote do
+            defoncep foo? do
+              2137
+            end
+          end
+        )
+      end
     end
   end
 end

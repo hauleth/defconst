@@ -93,8 +93,16 @@ defmodule Defconstant do
 
   @max_hash 4_294_967_295
 
-  defp do_defonce(type, {name, _, args}, _ctx, do: body) when is_atom(args) or args == [] do
+  defp do_defonce(type, {name, _, args}, ctx, do: body) when is_atom(args) or args == [] do
     body_hash = :erlang.phash2(body, @max_hash)
+
+    if Atom.to_string(name) =~ ~r/[!?]$/ do
+      raise CompileError,
+        description:
+          "`defonce#{if type == :defp, do: "p", else: ""}` cannot end with `!` nor `?` as `#{name}!/0` is used to force recompilation",
+        line: ctx.line,
+        file: ctx.file
+    end
 
     quote do
       unquote(type)(unquote(name)()) do
@@ -103,12 +111,19 @@ defmodule Defconstant do
             value
 
           _ ->
-            result = unquote(body)
-
-            :persistent_term.put({__MODULE__, unquote(name)}, {unquote(body_hash), result})
-
-            result
+            unquote(:"#{name}!")()
         end
+      end
+
+      @doc """
+      Force recomputation of `#{name}/0`
+      """
+      unquote(type)(unquote(:"#{name}!")()) do
+        result = unquote(body)
+
+        :persistent_term.put({__MODULE__, unquote(name)}, {unquote(body_hash), result})
+
+        result
       end
     end
   end
