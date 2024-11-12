@@ -115,9 +115,9 @@ defmodule Defconstant do
         end
       end
 
-      @doc """
+      @doc unquote("""
       Force recomputation of `#{name}/0`
-      """
+      """)
       unquote(type)(unquote(:"#{name}!")()) do
         result = unquote(body)
 
